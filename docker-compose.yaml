@@ -1,0 +1,36 @@
+services:
+  backend:
+    container_name: backend
+    depends_on:
+      - mosquitto
+    build: .
+    restart: unless-stopped
+    volumes:
+      - ./:/backend
+      - ./config/database.db:/backend/config/database.db 
+      - /backend/node_modules
+    ports:
+      - ${PORT}:${PORT}
+    env_file:
+      - .env
+    networks:
+      - app-networks
+
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: mqtt-broker
+    restart: unless-stopped
+    ports:
+      - "1883:1883"   # MQTT protocol
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+    networks:
+      - mqtt_net
+
+networks:
+  app-networks:
+    driver: bridge
+  mqtt_net:
+    driver: bridge
