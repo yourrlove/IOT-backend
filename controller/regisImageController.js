@@ -143,6 +143,7 @@ const createRegisterFace = async (req, res) => {
 
 // Function to get the image and its vector by account_id
 const getImageByID = (req, res) => {
+  console.log(req.params);
   const { accountId } = req.params;
   console.log("Extracted account ID:", accountId);
 

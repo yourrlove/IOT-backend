@@ -205,7 +205,6 @@ const getHistoriesByMemberId = (req, res) => {
                 eh.face_image,
                 a.id AS account_id,
                 a.name,
-                a.phone_number,
                 a.email
             FROM tbl_enter_history eh
             JOIN tbl_account a ON eh.account_id = a.id
@@ -242,15 +241,9 @@ const HisStatistics = (req, res) => {
         // Get current date in Vietnam Time (GMT+7)
         const vietnamTime = moment().tz("Asia/Ho_Chi_Minh");
 
-        // Set start of the day to 12:00 AM Vietnam Time
-        const startOfDayVN = vietnamTime.clone().startOf('day'); // Set to 12:00 AM
-
-        // Set end of the day to 11:59:59 PM Vietnam Time
-        const endOfDayVN = vietnamTime.clone().endOf('day'); // Set to 11:59:59 PM
-
-        // Convert to MySQL datetime format
-        const startOfDay = startOfDayVN.format('YYYY-MM-DD HH:mm:ss');
-        const endOfDay = endOfDayVN.format('YYYY-MM-DD HH:mm:ss');
+        // Set start and end of the day
+        const startOfDay = vietnamTime.clone().startOf("day").format("YYYY-MM-DD HH:mm:ss");
+        const endOfDay = vietnamTime.clone().endOf("day").format("YYYY-MM-DD HH:mm:ss");
 
         console.log("Start of Day (Vietnam Time):", startOfDay);
         console.log("End of Day (Vietnam Time):", endOfDay);
@@ -270,8 +263,8 @@ const HisStatistics = (req, res) => {
             totalImporters: 0,
         };
 
-        // Execute the first query
-        db.query(totalEntriesQuery, [startOfDay, endOfDay], (err, totalResult) => {
+        // Execute first query
+        db.get(totalEntriesQuery, [startOfDay, endOfDay], (err, totalResult) => {
             if (err) {
                 console.error("Error fetching total entries:", err);
                 return res.status(500).json({ error: "Failed to fetch history statistics" });
@@ -279,10 +272,10 @@ const HisStatistics = (req, res) => {
 
             console.log("Total Entries Result:", totalResult);
 
-            statistics.totalEntries = totalResult[0]?.total || 0;
+            statistics.totalEntries = totalResult?.total || 0;
 
-            // Execute the second query
-            db.query(importerEntriesQuery, [startOfDay, endOfDay], (err, importerResult) => {
+            // Execute second query
+            db.get(importerEntriesQuery, [startOfDay, endOfDay], (err, importerResult) => {
                 if (err) {
                     console.error("Error fetching importer entries:", err);
                     return res.status(500).json({ error: "Failed to fetch history statistics" });
@@ -290,15 +283,15 @@ const HisStatistics = (req, res) => {
 
                 console.log("Importer Entries Result:", importerResult);
 
-                statistics.totalImporters = importerResult[0]?.importers || 0;
+                statistics.totalImporters = importerResult?.importers || 0;
 
-                // Send the response
+                // Send response
                 console.log("Sending Response:", statistics);
                 return res.status(200).json(statistics);
             });
         });
     } catch (error) {
-        console.error("Error fetching history statistics:", error);
+        console.error("Unexpected error:", error);
         res.status(500).json({ error: "Failed to fetch history statistics" });
     }
 };

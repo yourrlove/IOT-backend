@@ -49,7 +49,7 @@ const getAccountById = async (req, res) => {
 const updateaccountusername = async (req, res) => {
     try {
         const username = req.params.username;
-        const { role, password } = req.body;
+        const { role, password, name, email } = req.body;
 
         // Start building the SQL query dynamically
         let sql = "UPDATE tbl_account SET";
@@ -67,6 +67,16 @@ const updateaccountusername = async (req, res) => {
             const hashedPassword = await bcrypt.hash(password, 10); // 10 = salt rounds
             updateFields.push("password = ?");
             values.push(hashedPassword);
+        }
+
+        if (name) {
+            updateFields.push("name =?");
+            values.push(name);
+        }
+
+        if (email) {
+            updateFields.push("email =?");
+            values.push(email);
         }
 
         // If no fields are provided, return an error
