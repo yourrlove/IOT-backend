@@ -107,7 +107,7 @@ const createRegisterFace = async (req, res) => {
       console.log("[DEBUG] Saving face data to database...");
       const sql = `
           INSERT INTO tbl_register_faces (face_image, face_image_process, account_id, image_vector_process)
-          VALUES (?, ?, ?, ?, ?)
+          VALUES (?, ?, ?, ?)
       `;
 
       db.run(sql, [imageUrlOriginal, imageUrlProcessed, account_id, formattedProcessedEmbedding], function (insertErr) {
