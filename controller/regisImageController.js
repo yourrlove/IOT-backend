@@ -68,7 +68,7 @@ const detectFaceAndProcess = (base64Image) => {
 
 
 const createRegisterFace = async (req, res) => {
-  embeding_url = 'http://127.0.0.1:5000/register_face'
+  embeding_url = 'http://172.20.10.6:5000/register_face'// URL to your embedding service
   try {
       console.log("[DEBUG] Starting createRegisterFace...");
       const { base64Image, account_id } = req.body;
@@ -93,13 +93,13 @@ const createRegisterFace = async (req, res) => {
       if (!fs.existsSync(uploadDirOriginal)) fs.mkdirSync(uploadDirOriginal, { recursive: true });
       if (!fs.existsSync(uploadDirProcessed)) fs.mkdirSync(uploadDirProcessed, { recursive: true });
 
-      try {
-          fs.writeFileSync(path.join(uploadDirOriginal, uniqueFileNameOriginal), fs.readFileSync(originalPath));
-          fs.writeFileSync(path.join(uploadDirProcessed, uniqueFileNameProcessed), fs.readFileSync(processedPath));
-      } catch (fsError) {
-          console.error("[ERROR] Error writing image files:", fsError);
-          return res.status(500).json({ message: "Failed to save image files" });
-      }
+      // try {
+      //     fs.writeFileSync(path.join(uploadDirOriginal, uniqueFileNameOriginal), fs.readFileSync(originalPath));
+      //     fs.writeFileSync(path.join(uploadDirProcessed, uniqueFileNameProcessed), fs.readFileSync(processedPath));
+      // } catch (fsError) {
+      //     console.error("[ERROR] Error writing image files:", fsError);
+      //     return res.status(500).json({ message: "Failed to save image files" });
+      // }
 
       console.log("[DEBUG] Formatting embeddings...");
       const formattedProcessedEmbedding = embedding_result['embedding']
