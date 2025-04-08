@@ -68,24 +68,19 @@ const detectFaceAndProcess = (base64Image) => {
 
 
 const createRegisterFace = async (req, res) => {
+  embeding_url = 'http://127.0.0.1:5000/register_face'
   try {
       console.log("[DEBUG] Starting createRegisterFace...");
       const { base64Image, account_id } = req.body;
 
-      if (!base64Image || !account_id) {
-          console.error("[ERROR] Missing required fields.");
-          return res.status(400).json({ message: "Base64 image and account_id are required!" });
-      }
+      embedding_result = await fetch(embeding_url, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ base64Image, account_id }),
+      });
 
-      console.log("[DEBUG] Calling detectFaceAndProcess...");
-      const { originalPath, processedPath, originalEmbedding, processedEmbedding } = await detectFaceAndProcess(base64Image);
-
-      if (!originalPath || !processedPath) {
-          console.error("[ERROR] Face not detected in the image.");
-          return res.status(400).json({ message: "Face not detected in the image!" });
-      }
-
-      console.log("[DEBUG] Preparing file paths and directories...");
       const uniqueFileNameOriginal = `${uuidv4()}.jpg`;
       const uniqueFileNameProcessed = `processed_${uuidv4()}.jpg`;
       const uploadDirOriginal = path.join(__dirname, `../public/uploads/${account_id}`);
@@ -107,16 +102,15 @@ const createRegisterFace = async (req, res) => {
       }
 
       console.log("[DEBUG] Formatting embeddings...");
-      const formattedOriginalEmbedding = JSON.stringify([[account_id], originalEmbedding]);
-      const formattedProcessedEmbedding = JSON.stringify([[account_id], processedEmbedding]);
+      const formattedProcessedEmbedding = embedding_result['embedding']
 
       console.log("[DEBUG] Saving face data to database...");
       const sql = `
-          INSERT INTO tbl_register_faces (face_image, face_image_process, account_id, image_vector, image_vector_process)
+          INSERT INTO tbl_register_faces (face_image, face_image_process, account_id, image_vector_process)
           VALUES (?, ?, ?, ?, ?)
       `;
 
-      db.run(sql, [imageUrlOriginal, imageUrlProcessed, account_id, formattedOriginalEmbedding, formattedProcessedEmbedding], function (insertErr) {
+      db.run(sql, [imageUrlOriginal, imageUrlProcessed, account_id, formattedProcessedEmbedding], function (insertErr) {
           if (insertErr) {
               console.error("[ERROR] Database insert error:", insertErr);
               return res.status(500).json({ message: "Internal Server Error" });
@@ -129,7 +123,6 @@ const createRegisterFace = async (req, res) => {
                   face_image: imageUrlOriginal,
                   face_image_process: imageUrlProcessed,
                   account_id,
-                  image_vector: formattedOriginalEmbedding,
                   image_vector_process: formattedProcessedEmbedding,
               },
           });
